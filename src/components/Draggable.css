@@ -1,0 +1,9 @@
+
+.draggable-container {
+  position: fixed;
+  z-index: 20;
+}
+
+.draggable-container:hover {
+  cursor: grab !important;
+}
