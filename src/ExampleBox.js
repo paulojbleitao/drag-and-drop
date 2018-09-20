@@ -22,6 +22,7 @@ class ExampleBox extends Component {
     return (
       <div onMouseMove={this.handleMouseMove}
            style={{ margin:  '20vh 20vw' }} className="Example-box">
+        <span>{mouseX}, {mouseY}</span>
         <RandomItem style={{backgroundColor: 'cyan'}} />
         <Draggable item={RandomItem} mouseX={mouseX} mouseY={mouseY} />
       </div>

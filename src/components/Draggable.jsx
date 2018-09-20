@@ -9,90 +9,89 @@ class Draggable extends Component {
     this.state = {
       cursor: 'default',
       clickStarted: false,
-      clickXlocation: null,
-      clickYlocation: null,
+      clickLocation: {
+        X: null,
+        Y: null
+      },
       elementPosition: {
         X: null,
         Y: null
       }
     }
 
-    this.fakeState = { rect: { x: 300, y: 300 } }
+    this.fakeState = { currentPosition: { x: 0, y: 0 } }
 
-    this.onMouseClick = this.onMouseClick.bind(this);
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
+    this.handleMouseDown = this.handleMouseDown.bind(this);
+    this.handleMouseUp = this.handleMouseUp.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    console.log('nextProps', nextProps);
-    const { mouseX, mouseY } = nextProps;
-    const { dragX, dragY } = this.updatePosition(mouseX, mouseY);
+  handleMouseMove(event) {
+    const { screenX, screenY } = event;
+    const { dragX, dragY } = this.updatePosition(screenX, screenY);
+
     this.setState({ elementPosition: { X: dragX, Y: dragY } });
   }
 
-  onMouseClick(e) {
-    // console.log(this.state.node.getBoundingClientRect());
-    console.log(e.screenX, e.screenY, this.state);
-    // console.log(this.getBoundingClientRect());
 
-  }
-
-  onMouseDown(e) {
+  handleMouseDown(e) {
     let dragX = 0;
     let dragY = 0;
 
-    console.log(e.screenX, e.screenY);
-    this.setState({ clickStarted: true, clickXlocation: e.screenX, clickYlocation: e.screenY })
+    this.setState({
+      clickStarted: true,
+      clickLocation: {
+        X: e.screenX,
+        Y: e.screenY
+      },
+      positionWhenClicked: {
+        X: this.fakeState.currentPosition.x,
+        Y: this.fakeState.currentPosition.y
+      }
+    })
   }
 
-  onMouseUp(e) {
+  handleMouseUp(e) {
     this.setState({ clickStarted: false })
   }
 
   updatePosition(mouseX, mouseY) {
-    let dragX = 0;
-    let dragY = 0;
-    const initialX = this.fakeState.rect.x;
-    const initialY = this.fakeState.rect.y;
-    console.log('initial', initialX, initialY);
-    console.log('clickX', this.state.clickXlocation);
-    console.log('mouse', mouseX, mouseY)
+    const elementPositionX = this.fakeState.currentPosition.x;
+    const elementPositionY = this.fakeState.currentPosition.y;
+
+    let dragX = elementPositionX;
+    let dragY = elementPositionY;
 
     if (this.state.clickStarted) {
-      dragX = initialX + (-this.state.clickXlocation + mouseX);
-      dragY = initialY + (-this.state.clickYlocation + mouseY);
-      console.log('if', dragX, dragY);
-    } else {
-      dragX = this.fakeState.rect.x;
-      dragY = this.fakeState.rect.y;
-      console.log('else', dragX, dragY);
+      const relativeXdistance = (this.state.clickLocation.X - this.state.positionWhenClicked.X)
+      const relativeYdistance = (this.state.clickLocation.Y - this.state.positionWhenClicked.Y)
+
+      dragX = mouseX - relativeXdistance;
+      dragY = mouseY - relativeYdistance;
     }
 
-    console.log(this.state);
-    // this.setState({ elementPosition: { X: dragX, Y: dragY} });
     return { dragX, dragY };
   }
 
   render() {
     const Element = this.props.item;
     const { mouseX, mouseY } = this.props;
+    const { X, Y } = this.state.elementPosition;
     const state = this.state;
 
     return (
       <div
         className="draggable-container"
         style={{ cursor: state.cursor, top: state.elementPosition.Y, left: state.elementPosition.X }}
-        onClick={this.onMouseClick}
-        onMouseDown={this.onMouseDown}
-        onMouseUp={this.onMouseUp}
+        onMouseDown={this.handleMouseDown}
+        onMouseUp={this.handleMouseUp}
+        onMouseMove={this.handleMouseMove}
       >
-        <Element {...Element.props} ref={ el => {
+        <Element {...Element.props} ref={el => {
             const node = ReactDOM.findDOMNode(el);
             if (node) {
-              const rect = node.getBoundingClientRect();
-              this.fakeState = { rect }
-              // console.log(rect);
+              const currentPosition = node.getBoundingClientRect();
+              this.fakeState = { currentPosition }
             }
 
           } } />
